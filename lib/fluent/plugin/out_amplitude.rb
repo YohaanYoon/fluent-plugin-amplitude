@@ -10,6 +10,7 @@ module Fluent
     config_param :user_id_key, :string
     config_param :user_properties, :array, default: nil
     config_param :event_properties, :array, default: nil
+    config_param :blacklist_properties, :array, default: nil
     class AmplitudeError < StandardError
     end
 
@@ -36,6 +37,9 @@ module Fluent
       amplitude_hash = {
         event_type: tag
       }
+
+      record = filter_blacklist_properties(record)
+
       amplitude_hash, record = extract_user_and_device(amplitude_hash, record)
 
       unless amplitude_hash[:user_id] || amplitude_hash[:device_id]
@@ -59,6 +63,14 @@ module Fluent
     end
 
     private
+
+    def filter_blacklist_properties(record)
+      if @blacklist_properties
+        record.reject { |k,v| @blacklist_properties.include?(k) }
+      else
+        record
+      end
+    end
 
     def extract_user_and_device(amplitude_hash, record)
       if @user_id_key && record[@user_id_key]

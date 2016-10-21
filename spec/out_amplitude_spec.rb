@@ -143,5 +143,50 @@ describe Fluent::AmplitudeOutput do
         )
       end
     end
+
+
+    context 'blacklist_properties is specified' do
+      let(:conf) do
+         %(
+            api_key XXXXXX
+            user_id_key user_id
+            device_id_key uuid
+            user_properties first_name, last_name
+            blacklist_properties foo, state
+          )
+      end
+
+      let(:event) do
+        {
+          'user_id' => 42,
+          'uuid' => 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710,
+          'foo' => 'bar'
+        }
+      end
+      let(:formatted_event) do
+        {
+          event_type: tag,
+          user_id: 42,
+          device_id: 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          user_properties: {
+            first_name: 'Bobby',
+            last_name: 'Weir'
+          },
+          event_properties: {
+            current_source: 'fb_share',
+            recruiter_id: 710
+          }
+        }
+      end
+      it 'produces the expected output without blacklisted properties' do
+        amplitude.expect_format [tag, now, formatted_event].to_msgpack
+        amplitude.run
+      end
+    end
   end
 end
