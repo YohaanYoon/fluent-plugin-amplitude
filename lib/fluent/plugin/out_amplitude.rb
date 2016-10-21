@@ -11,6 +11,7 @@ module Fluent
     config_param :user_properties, :array, default: nil
     config_param :event_properties, :array, default: nil
     config_param :blacklist_properties, :array, default: nil
+    config_param :events_whitelist, :array, default: nil
     class AmplitudeError < StandardError
     end
 
@@ -34,6 +35,8 @@ module Fluent
     end
 
     def format(tag, time, record)
+      return if @events_whitelist && !@events_whitelist.include?(tag)
+
       amplitude_hash = {
         event_type: tag
       }
