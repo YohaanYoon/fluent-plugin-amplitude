@@ -25,6 +25,8 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-amplitude
   device_id_key uuid
   user_properties first_name, last_name
   event_properties current_source
+  properties_blacklist user
+  events_whitelist petition_view, petition_share
   flush_interval 5s
   retry_limit 2
   remove_tag_prefix output.amplitude.
@@ -57,6 +59,12 @@ remove_tag_suffix <tag_suffix_to_remove_including_the_dot>
 add_tag_prefix <tag_prefix_to_add_including_the_dot>
 add_tag_suffix <tag_suffix_to_add_including_the_dot>
 ```
+
+#### properties_blacklist
+Any properties included in the blacklist will be scrubbed from the record.
+
+#### events_whitelist
+If your `<match>` is using a wildcard, you can specify specific events to whitelist. If the `events_whitelist` is empty all events will be sent to Amplitude. Note the event name here is the `event_type` (so should not include, e.g., any prefixes that were removed via `remove_tag_prefix`)
 
 #### Error handling
 Any error will result in the message retrying. In the case of an incorrectly configured API key, this can result in the messages infinitely retrying.  You should set the normal [buffered output plugin options](http://docs.fluentd.org/articles/buffer-plugin-overview) to prevent this (and to preserve data in the case of misconfigured records failing to be submitted to Amplitude).
