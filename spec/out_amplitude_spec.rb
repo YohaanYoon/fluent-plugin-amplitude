@@ -144,16 +144,15 @@ describe Fluent::AmplitudeOutput do
       end
     end
 
-
     context 'properties_blacklist is specified' do
       let(:conf) do
-         %(
-            api_key XXXXXX
-            user_id_key user_id
-            device_id_key uuid
-            user_properties first_name, last_name
-            properties_blacklist foo, state
-          )
+        %(
+          api_key XXXXXX
+          user_id_key user_id
+          device_id_key uuid
+          user_properties first_name, last_name
+          properties_blacklist foo, state
+        )
       end
 
       let(:event) do
