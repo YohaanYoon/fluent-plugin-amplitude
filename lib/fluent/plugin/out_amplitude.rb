@@ -41,17 +41,18 @@ module Fluent
         event_type: tag
       }
 
-      record = filter_properties_blacklist(record)
+      filter_properties_blacklist!(record)
 
-      amplitude_hash, record = extract_user_and_device(amplitude_hash, record)
+
+      extract_user_and_device!(amplitude_hash, record)
 
       unless amplitude_hash[:user_id] || amplitude_hash[:device_id]
         raise AmplitudeError, 'Error: either user_id or device_id must be set'
       end
 
-      amplitude_hash, record = extract_user_properties(amplitude_hash, record)
+      extract_user_properties!(amplitude_hash, record)
 
-      amplitude_hash = extract_event_properties(amplitude_hash, record)
+      extract_event_properties!(amplitude_hash, record)
 
       [tag, time, amplitude_hash].to_msgpack
     end
@@ -67,15 +68,13 @@ module Fluent
 
     private
 
-    def filter_properties_blacklist(record)
+    def filter_properties_blacklist!(record)
       if @properties_blacklist
-        record.reject { |k,v| @properties_blacklist.include?(k) }
-      else
-        record
+        record.reject! { |k,v| @properties_blacklist.include?(k) }
       end
     end
 
-    def extract_user_and_device(amplitude_hash, record)
+    def extract_user_and_device!(amplitude_hash, record)
       if @user_id_key && record[@user_id_key]
         amplitude_hash[:user_id] = record.delete(@user_id_key)
       end
@@ -83,11 +82,9 @@ module Fluent
       if @device_id_key && record[@device_id_key]
         amplitude_hash[:device_id] = record.delete(@device_id_key)
       end
-
-      [amplitude_hash, record]
     end
 
-    def extract_user_properties(amplitude_hash, record)
+    def extract_user_properties!(amplitude_hash, record)
       # if user_properties are specified, pull them off of the record
       if @user_properties
         amplitude_hash[:user_properties] = {}.tap do |user_properties|
@@ -97,10 +94,9 @@ module Fluent
           end
         end
       end
-      [amplitude_hash, record]
     end
 
-    def extract_event_properties(amplitude_hash, record)
+    def extract_event_properties!(amplitude_hash, record)
       # if event_properties are specified, pull them off of the record
       # otherwise, use the remaining record (minus any user_properties)
       amplitude_hash[:event_properties] = begin
@@ -112,7 +108,6 @@ module Fluent
           record
         end
       end
-      amplitude_hash
     end
 
     def send_to_amplitude(records)
