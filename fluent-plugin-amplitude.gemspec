@@ -18,11 +18,11 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'fluentd', '>= 0.10.55'
   spec.add_runtime_dependency 'amplitude-api', '~> 0.0.9'
-  spec.add_runtime_dependency 'msgpack', '~> 1.0.2'
+  spec.add_runtime_dependency 'msgpack', '~> 1.0', '>= 1.0.2'
 
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'test-unit'
-  spec.add_development_dependency 'rspec-mocks'
-  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'rake', '~> 11.3'
+  spec.add_development_dependency 'rspec', '~> 3.5'
+  spec.add_development_dependency 'test-unit', '~> 3.2', '>= 3.2.1'
+  spec.add_development_dependency 'rspec-mocks', '~> 3.5'
+  spec.add_development_dependency 'rubocop', '~> 0.44.1'
 end
