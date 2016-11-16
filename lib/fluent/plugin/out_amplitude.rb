@@ -1,4 +1,4 @@
-require './lib/fluent/plugin/fake_active_support'
+require 'fluent/plugin/fake_active_support'
 module Fluent
   # Fluent::AmplitudeOutput plugin
   class AmplitudeOutput < Fluent::BufferedOutput
