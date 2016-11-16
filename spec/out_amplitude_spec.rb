@@ -144,6 +144,25 @@ describe Fluent::AmplitudeOutput do
       end
     end
 
+    context 'the input only contains empty user_id and device_id fields' do
+      let(:event) do
+        {
+          'user_id' => '',
+          'uuid' => '',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710
+        }
+      end
+      it 'raises a Fluent::AmplitudeOutput::AmplitudeError' do
+        expect { amplitude.run }.to raise_error(
+          Fluent::AmplitudeOutput::AmplitudeError
+        )
+      end
+    end
+
     context 'properties_blacklist is specified' do
       let(:conf) do
         %(

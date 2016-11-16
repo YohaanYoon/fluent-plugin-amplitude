@@ -1,9 +1,11 @@
+require './lib/fluent/plugin/fake_active_support'
 module Fluent
   # Fluent::AmplitudeOutput plugin
   class AmplitudeOutput < Fluent::BufferedOutput
     Fluent::Plugin.register_output('amplitude', self)
 
     include Fluent::HandleTagNameMixin
+    include FakeActiveSupport
 
     config_param :api_key, :string, secret: true
     config_param :device_id_key, :string
@@ -76,7 +78,9 @@ module Fluent
     end
 
     def verify_user_and_device_or_fail(amplitude_hash)
-      return if amplitude_hash[:user_id] || amplitude_hash[:device_id]
+      user_id = amplitude_hash[:user_id]
+      device_id = amplitude_hash[:device_id]
+      return if present?(user_id) || present?(device_id)
       raise AmplitudeError, 'Error: either user_id or device_id must be set'
     end
 
@@ -115,16 +119,6 @@ module Fluent
       rescue StandardError => e
         raise AmplitudeError, "Error: #{e.message}"
       end
-    end
-
-    def simple_symbolize_keys(hsh)
-      Hash[hsh.map do |k, v|
-        begin
-          [k.to_sym, v]
-        rescue
-          [k, v]
-        end
-      end]
     end
   end
 end
