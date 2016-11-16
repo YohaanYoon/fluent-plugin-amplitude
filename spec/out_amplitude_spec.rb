@@ -206,5 +206,91 @@ describe Fluent::AmplitudeOutput do
         amplitude.run
       end
     end
+
+    context 'multiple user_id_key specified' do
+      let(:conf) do
+        %(
+          api_key XXXXXX
+          user_id_key user_id, another_user_id_field
+          device_id_key uuid
+          user_properties first_name, last_name
+          event_properties current_source
+        )
+      end
+      let(:event) do
+        {
+          'another_user_id_field' => 42,
+          'uuid' => 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710
+        }
+      end
+
+      let(:formatted_event) do
+        {
+          event_type: tag,
+          user_id: 42,
+          device_id: 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          user_properties: {
+            first_name: 'Bobby',
+            last_name: 'Weir'
+          },
+          event_properties: {
+            current_source: 'fb_share'
+          }
+        }
+      end
+
+      it 'produces the expected output' do
+        amplitude.expect_format [tag, now, formatted_event].to_msgpack
+        amplitude.run
+      end
+    end
+
+    context 'multiple device_id_key specified' do
+      let(:conf) do
+        %(
+          api_key XXXXXX
+          user_id_key user_id
+          device_id_key uuid, user_uuid
+          user_properties first_name, last_name
+          event_properties current_source
+        )
+      end
+      let(:event) do
+        {
+          'user_id' => 42,
+          'user_uuid' => 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710
+        }
+      end
+
+      let(:formatted_event) do
+        {
+          event_type: tag,
+          user_id: 42,
+          device_id: 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          user_properties: {
+            first_name: 'Bobby',
+            last_name: 'Weir'
+          },
+          event_properties: {
+            current_source: 'fb_share'
+          }
+        }
+      end
+
+      it 'produces the expected output' do
+        amplitude.expect_format [tag, now, formatted_event].to_msgpack
+        amplitude.run
+      end
+    end
   end
 end

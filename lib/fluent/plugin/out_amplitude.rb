@@ -8,8 +8,8 @@ module Fluent
     include FakeActiveSupport
 
     config_param :api_key, :string, secret: true
-    config_param :device_id_key, :string
-    config_param :user_id_key, :string
+    config_param :device_id_key, :array, default: nil
+    config_param :user_id_key, :array, default: nil
     config_param :user_properties, :array, default: nil
     config_param :event_properties, :array, default: nil
     config_param :properties_blacklist, :array, default: nil
@@ -66,12 +66,21 @@ module Fluent
     end
 
     def extract_user_and_device_or_fail!(amplitude_hash, record)
-      if @user_id_key && record[@user_id_key]
-        amplitude_hash[:user_id] = record.delete(@user_id_key)
+      if @user_id_key
+        @user_id_key.each do |user_id_key|
+          if record[user_id_key]
+            amplitude_hash[:user_id] = record.delete(user_id_key)
+            break
+          end
+        end
       end
-
-      if @device_id_key && record[@device_id_key]
-        amplitude_hash[:device_id] = record.delete(@device_id_key)
+      if @device_id_key
+        @device_id_key.each do |device_id_key|
+          if record[device_id_key]
+            amplitude_hash[:device_id] = record.delete(device_id_key)
+            break
+          end
+        end
       end
 
       verify_user_and_device_or_fail(amplitude_hash)

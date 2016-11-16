@@ -41,7 +41,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-amplitude
 AmplitudeOutput needs your Amplitude `api_key` ([see Amplitude for more information](https://amplitude.zendesk.com/hc/en-us/articles/206728448-Where-can-I-find-my-app-s-API-Key-or-Secret-Key-))
 
 #### user_id_key and device_id_key
-You must set at least one of `user_id_key` and `device_id_key`. They will be used to pull out the `user_id` and `device_id` values from the record to send to the Amplitude API.
+You must set at least one of `user_id_key` and `device_id_key`. They will be used to pull out the `user_id` and `device_id` values from the record to send to the Amplitude API. Note these can both be arrays, and the first matching key will be used.
 
 #### user_properties and event_properties
 You can optionally specify lists of `user_properties` and `event_properties` to pull from the record.
