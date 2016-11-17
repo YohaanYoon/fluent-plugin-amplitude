@@ -54,9 +54,11 @@ module Fluent
         next if @events_whitelist && !@events_whitelist.include?(tag)
         next if @events_blacklist && @events_blacklist.include?(tag)
         record = simple_symbolize_keys(record)
-        verify_user_and_device_or_fail(record)
-
-        records << AmplitudeAPI::Event.new(record)
+        if verify_user_and_device(record)
+          records << AmplitudeAPI::Event.new(record)
+        else
+          log.info("Error: either user_id or device_id must be set for tag #{tag}")
+        end
       end
 
       send_to_amplitude(records) unless records.empty?
@@ -88,11 +90,10 @@ module Fluent
       end
     end
 
-    def verify_user_and_device_or_fail(amplitude_hash)
+    def verify_user_and_device(amplitude_hash)
       user_id = amplitude_hash[:user_id]
       device_id = amplitude_hash[:device_id]
-      return if present?(user_id) || present?(device_id)
-      raise AmplitudeError, 'Error: either user_id or device_id must be set'
+      return present?(user_id) || present?(device_id)
     end
 
     def extract_user_properties!(amplitude_hash, record)

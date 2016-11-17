@@ -137,10 +137,9 @@ describe Fluent::AmplitudeOutput do
           'recruiter_id' => 710
         }
       end
-      it 'raises a Fluent::AmplitudeOutput::AmplitudeError' do
-        expect { amplitude.run }.to raise_error(
-          Fluent::AmplitudeOutput::AmplitudeError
-        )
+      it 'does not track the event' do
+        expect(AmplitudeAPI).to_not receive(:track)
+        amplitude.run
       end
     end
 
@@ -156,10 +155,9 @@ describe Fluent::AmplitudeOutput do
           'recruiter_id' => 710
         }
       end
-      it 'raises a Fluent::AmplitudeOutput::AmplitudeError' do
-        expect { amplitude.run }.to raise_error(
-          Fluent::AmplitudeOutput::AmplitudeError
-        )
+      it 'does not track the event' do
+        expect(AmplitudeAPI).to_not receive(:track)
+        amplitude.run
       end
     end
 
