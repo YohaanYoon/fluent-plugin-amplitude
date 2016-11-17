@@ -38,13 +38,10 @@ module Fluent
     end
 
     def format(tag, time, record)
-      return if @events_whitelist && !@events_whitelist.include?(tag)
-      return if @events_blacklist && @events_blacklist.include?(tag)
-
       amplitude_hash = { event_type: tag }
 
       filter_properties_blacklist!(record)
-      extract_user_and_device_or_fail!(amplitude_hash, record)
+      extract_user_and_device!(amplitude_hash, record)
       extract_user_properties!(amplitude_hash, record)
       extract_event_properties!(amplitude_hash, record)
 
@@ -53,11 +50,16 @@ module Fluent
 
     def write(chunk)
       records = []
-      chunk.msgpack_each do |_tag, _time, record|
-        records << AmplitudeAPI::Event.new(simple_symbolize_keys(record))
+      chunk.msgpack_each do |tag, _time, record|
+        next if @events_whitelist && !@events_whitelist.include?(tag)
+        next if @events_blacklist && @events_blacklist.include?(tag)
+        record = simple_symbolize_keys(record)
+        verify_user_and_device_or_fail(record)
+
+        records << AmplitudeAPI::Event.new(record)
       end
 
-      send_to_amplitude(records)
+      send_to_amplitude(records) unless records.empty?
     end
 
     private
@@ -67,7 +69,7 @@ module Fluent
       record.reject! { |k, _| @properties_blacklist.include?(k) }
     end
 
-    def extract_user_and_device_or_fail!(amplitude_hash, record)
+    def extract_user_and_device!(amplitude_hash, record)
       if @user_id_key
         @user_id_key.each do |user_id_key|
           if record[user_id_key]
@@ -84,8 +86,6 @@ module Fluent
           end
         end
       end
-
-      verify_user_and_device_or_fail(amplitude_hash)
     end
 
     def verify_user_and_device_or_fail(amplitude_hash)
