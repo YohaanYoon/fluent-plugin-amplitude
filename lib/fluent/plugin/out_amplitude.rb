@@ -57,7 +57,9 @@ module Fluent
         if verify_user_and_device(record)
           records << AmplitudeAPI::Event.new(record)
         else
-          log.info("Error: either user_id or device_id must be set for tag #{tag}")
+          log.info(
+            "Error: either user_id or device_id must be set for tag #{tag}"
+          )
         end
       end
 
@@ -93,7 +95,7 @@ module Fluent
     def verify_user_and_device(amplitude_hash)
       user_id = amplitude_hash[:user_id]
       device_id = amplitude_hash[:device_id]
-      return present?(user_id) || present?(device_id)
+      present?(user_id) || present?(device_id)
     end
 
     def extract_user_properties!(amplitude_hash, record)
@@ -123,14 +125,19 @@ module Fluent
 
     def send_to_amplitude(records)
       log.info("sending #{records.length} to amplitude")
-      begin
-        res = AmplitudeAPI.track(records)
+      errors = []
+      until records.empty?
+        res = AmplitudeAPI.track(records.pop(500))
         unless res.response_code == 200
-          raise "Got #{res.response_code} #{res.body} from AmplitudeAPI"
+          errors << [[res.response_code, res.body]]
         end
-      rescue StandardError => e
-        raise AmplitudeError, "Error: #{e.message}"
       end
+      return if errors.empty?
+
+      errors_string = errors.map do |code, body|
+        "Response: #{code} Body: #{body}"
+      end
+      raise AmplitudeError, "Errors: #{errors_string}"
     end
   end
 end
