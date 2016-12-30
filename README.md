@@ -23,6 +23,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-amplitude
   api_key XXXXXX
   user_id_key user_id
   device_id_key uuid
+  time_key created_at
   user_properties first_name, last_name
   event_properties current_source
   properties_blacklist user
@@ -43,6 +44,9 @@ AmplitudeOutput needs your Amplitude `api_key` ([see Amplitude for more informat
 
 #### user_id_key and device_id_key
 You must set at least one of `user_id_key` and `device_id_key`. They will be used to pull out the `user_id` and `device_id` values from the record to send to the Amplitude API. Note these can both be arrays, and the first matching key will be used.
+
+#### time_key
+If set, `time_key` will be used to pull out a timestamp field to set as `time` in the Amplitude API request. This can be an array, the first matching key will be used.
 
 #### user_properties and event_properties
 You can optionally specify lists of `user_properties` and `event_properties` to pull from the record.
