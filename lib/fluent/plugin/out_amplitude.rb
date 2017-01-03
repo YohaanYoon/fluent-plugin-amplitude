@@ -10,6 +10,7 @@ module Fluent
     config_param :api_key, :string, secret: true
     config_param :device_id_key, :array, default: nil
     config_param :user_id_key, :array, default: nil
+    config_param :time_key, :array, default: nil
     config_param :user_properties, :array, default: nil
     config_param :event_properties, :array, default: nil
     config_param :properties_blacklist, :array, default: nil
@@ -42,6 +43,7 @@ module Fluent
 
       filter_properties_blacklist!(record)
       extract_user_and_device!(amplitude_hash, record)
+      set_time!(amplitude_hash, record)
       extract_user_properties!(amplitude_hash, record)
       extract_event_properties!(amplitude_hash, record)
 
@@ -98,6 +100,25 @@ module Fluent
       present?(user_id) || present?(device_id)
     end
 
+    def set_time!(amplitude_hash, record)
+      return unless @time_key && !@time_key.empty?
+      @time_key.each do |time_key|
+        next unless record[time_key]
+        if (time = parse_time_from_string(record[time_key]))
+          amplitude_hash[:time] = time
+          break
+        end
+      end
+    end
+
+    def parse_time_from_string(time_string)
+      # this should be seconds since epoch; amplitude-api
+      # converts it to milliseconds since epoch as needed.
+      Time.parse(time_string).to_i
+    rescue StandardError => e
+      log.info("failed to parse #{time_string}: #{e.message}")
+    end
+
     def extract_user_properties!(amplitude_hash, record)
       # if user_properties are specified, pull them off of the record
       return unless @user_properties
@@ -132,8 +153,11 @@ module Fluent
           errors << [[res.response_code, res.body]]
         end
       end
-      return if errors.empty?
+      log_errors(errors)
+    end
 
+    def log_errors(errors)
+      return if errors.empty?
       errors_string = errors.map do |code, body|
         "Response: #{code} Body: #{body}"
       end
