@@ -42,7 +42,11 @@ describe Fluent::AmplitudeOutput do
           'last_name' => 'Weir',
           'state' => 'CA',
           'current_source' => 'fb_share',
-          'recruiter_id' => 710
+          'recruiter_id' => 710,
+          'revenue_type' => 'sustainer',
+          'quantity' => 2,
+          'price' => 10.05,
+          'revenue' => 20.10,
         }
       end
 
@@ -51,6 +55,10 @@ describe Fluent::AmplitudeOutput do
           event_type: tag,
           user_id: 42,
           device_id: 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          price: 10.05,
+          quantity: 2,
+          revenue: 20.10,
+          revenue_type: 'sustainer',
           user_properties: {
             first_name: 'Bobby',
             last_name: 'Weir'
