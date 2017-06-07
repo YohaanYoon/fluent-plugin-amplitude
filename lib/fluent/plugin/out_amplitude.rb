@@ -7,6 +7,13 @@ module Fluent
     include Fluent::HandleTagNameMixin
     include FakeActiveSupport
 
+    REVENUE_PROPERTIES = %w(
+      price
+      quantity
+      revenue
+      revenue_type
+    ).freeze
+
     config_param :api_key, :string, secret: true
     config_param :device_id_key, :array, default: nil
     config_param :user_id_key, :array, default: nil
@@ -16,8 +23,8 @@ module Fluent
     config_param :properties_blacklist, :array, default: nil
     config_param :events_whitelist, :array, default: nil
     config_param :events_blacklist, :array, default: nil
-    class AmplitudeError < StandardError
-    end
+
+    class AmplitudeError < StandardError; end
 
     def initialize
       super
@@ -44,6 +51,7 @@ module Fluent
       filter_properties_blacklist!(record)
       extract_user_and_device!(amplitude_hash, record)
       set_time!(amplitude_hash, record)
+      extract_revenue_properties!(amplitude_hash, record)
       extract_user_properties!(amplitude_hash, record)
       extract_event_properties!(amplitude_hash, record)
 
@@ -119,6 +127,14 @@ module Fluent
       log.info("failed to parse #{time_string}: #{e.message}")
     end
 
+    def extract_revenue_properties!(amplitude_hash, record)
+      REVENUE_PROPERTIES.each do |prop|
+        next if record[prop].nil?
+
+        amplitude_hash[prop.to_sym] = record.delete(prop)
+      end
+    end
+
     def extract_user_properties!(amplitude_hash, record)
       # if user_properties are specified, pull them off of the record
       return unless @user_properties
@@ -132,7 +148,7 @@ module Fluent
 
     def extract_event_properties!(amplitude_hash, record)
       # if event_properties are specified, pull them off of the record
-      # otherwise, use the remaining record (minus any user_properties)
+      # otherwise, use the remaining record (minus any revenue_properties and user_properties)
       amplitude_hash[:event_properties] = begin
         if @event_properties
           record.select do |k, _v|

@@ -48,12 +48,20 @@ You must set at least one of `user_id_key` and `device_id_key`. They will be use
 #### time_key
 If set, `time_key` will be used to pull out a timestamp field to set as `time` in the Amplitude API request. This can be an array, the first matching key will be used.
 
+####  revenue_properties
+
+`revenue_properties` are a fixed set of properties that Amplitude looks for in order to determine which events are revenue events (see Amplitude's [revenue tracking guide](https://amplitude.zendesk.com/hc/en-us/articles/115003116888-Tracking-Revenue) and [HTTP API documentation](https://amplitude.zendesk.com/hc/en-us/articles/204771828#keys-for-the-event-argument) for more information). `revenue_properties` are set as top-level properties on the API call. The `revenue_properties` we currently support are:
+* quantity
+* price
+* revenue
+* revenue_type
+
 #### user_properties and event_properties
 You can optionally specify lists of `user_properties` and `event_properties` to pull from the record.
 
 If `user_properties` are specified, only those properties will be included as `user_properties` in the Amplitude API call.  Otherwise no `user_properties` will be sent.
 
-If `event_properties` are specified, only those properties will be included as `event_properties` in the Amplitude API call. Otherwise the entire record (minus the key/value for `user_id_key` and `device_id_key`, and minus any `user_properties`) will be sent as `event_properties` to Amplitude.
+If `event_properties` are specified, only those properties will be included as `event_properties` in the Amplitude API call. If no `event_properties` are specified, then every field with the exception of `user_id_key`, `device_id_key`, all `revenue_properties`, and anything specified in `user_properties`, will be sent as `event_properties` in the Amplitude API call.
 
 #### event type
 The event_type is the tag.  To modify this, fluent-plugin-amplitude includes the `HandleTagNameMixin` mixin which allows the following options:
