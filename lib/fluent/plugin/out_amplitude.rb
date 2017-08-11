@@ -164,9 +164,12 @@ module Fluent
       log.info("sending #{records.length} to amplitude")
       errors = []
       until records.empty?
-        res = AmplitudeAPI.track(records.pop(500))
+        records_to_send = records.pop(500)
+        start_time = Time.now.to_i
+        res = AmplitudeAPI.track(records_to_send)
         unless res.response_code == 200
-          errors << [[res.response_code, res.body]]
+          fail_time = Time.now.to_i
+          errors << [res.response_code, res.body, records_to_send, fail_time - start_time]
         end
       end
       log_errors(errors)
@@ -174,8 +177,8 @@ module Fluent
 
     def log_errors(errors)
       return if errors.empty?
-      errors_string = errors.map do |code, body|
-        "Response: #{code} Body: #{body}"
+      errors_string = errors.map do |code, body, records, time|
+        "Response: #{code}, Time: #{time}, Body: #{body}, Record: #{records}"
       end
       raise AmplitudeError, "Errors: #{errors_string}"
     end
