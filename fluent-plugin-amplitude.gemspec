@@ -24,5 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.5'
   spec.add_development_dependency 'test-unit', '~> 3.2', '>= 3.2.1'
   spec.add_development_dependency 'rspec-mocks', '~> 3.5'
-  spec.add_development_dependency 'rubocop', '~> 0.44.1'
+  spec.add_development_dependency 'rubocop', '~> 0.52.0'
 end
