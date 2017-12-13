@@ -169,7 +169,6 @@ module Fluent
       records_sent = 0
       until records.empty?
         records_to_send = records.pop(500)
-        start_time = Time.now.to_i
         res = AmplitudeAPI.track(records_to_send)
         @statsd.track('fluentd.amplitude.request_time', res.total_time * 1000)
         if res.response_code == 200
@@ -182,8 +181,11 @@ module Fluent
             "Amplitude request complete. Duration: #{res.total_time * 1000}, Records: #{records_to_send.length}"
           )
         else
-          fail_time = Time.now.to_i
-          errors << [res.response_code, res.body, records_to_send, fail_time - start_time]
+          @statsd.track(
+            'fluentd.amplitude.records_errored',
+            records_to_send.length
+          )
+          errors << [res.response_code, res.body, records_to_send, res.total_time * 1000]
         end
       end
       log.info("sent #{records_sent} to amplitude")
