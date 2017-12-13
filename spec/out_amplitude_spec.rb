@@ -22,9 +22,12 @@ describe Fluent::AmplitudeOutput do
   before do
     Fluent::Test.setup
     expect(AmplitudeAPI).to receive(:api_key=).with('XXXXXX')
+    response = double(:response, response_code: 200)
     allow(AmplitudeAPI).to receive(:track).with(kind_of(Array)).and_return(
-      double(:response, response_code: 200)
+      response
     )
+    allow(response).to receive(:total_time).and_return(123)
+    allow_any_instance_of(Statsd).to receive(:track)
   end
 
   describe '#format' do

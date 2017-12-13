@@ -6,6 +6,7 @@ Bundler.require(:default, :test)
 
 require 'fluent/test'
 require 'rspec'
+require 'statsd'
 
 Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
 

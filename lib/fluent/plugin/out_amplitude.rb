@@ -1,4 +1,5 @@
 require 'fluent/plugin/fake_active_support'
+
 module Fluent
   # Fluent::AmplitudeOutput plugin
   class AmplitudeOutput < Fluent::BufferedOutput
@@ -29,6 +30,8 @@ module Fluent
     def initialize
       super
       require 'amplitude-api'
+      require 'statsd-ruby'
+      @statsd = ::Statsd.new
     end
 
     def configure(conf)
@@ -168,11 +171,16 @@ module Fluent
         records_to_send = records.pop(500)
         start_time = Time.now.to_i
         res = AmplitudeAPI.track(records_to_send)
-        log.info(
-          "Amplitude request complete. Duration: #{res.total_time * 1000}"
-        )
+        @statsd.track('fluentd.amplitude.request_time', res.total_time * 1000)
         if res.response_code == 200
+          @statsd.track(
+            'fluentd.amplitude.records_sent',
+            records_to_send.length
+          )
           records_sent += records_to_send.length
+          log.info(
+            "Amplitude request complete. Duration: #{res.total_time * 1000}, Records: #{records_to_send.length}"
+          )
         else
           fail_time = Time.now.to_i
           errors << [res.response_code, res.body, records_to_send, fail_time - start_time]
