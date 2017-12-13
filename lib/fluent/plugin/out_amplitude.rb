@@ -168,7 +168,8 @@ module Fluent
       errors = []
       records_sent = 0
       until records.empty?
-        records_to_send = records.pop(500)
+        # todo make batch size configurable
+        records_to_send = records.pop(100)
         res = AmplitudeAPI.track(records_to_send)
         @statsd.track('fluentd.amplitude.request_time', res.total_time * 1000)
         if res.response_code == 200
