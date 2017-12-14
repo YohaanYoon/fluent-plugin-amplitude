@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = 'fluent-plugin-amplitude'
-  spec.version       = '0.2.0'
+  spec.version       = '0.2.3'
   spec.authors       = ['Change.org']
   spec.email         = ['tech_ops@change.org']
   spec.summary       = 'Fluentd plugin to output event data to Amplitude'
