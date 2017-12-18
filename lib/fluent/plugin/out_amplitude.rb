@@ -165,40 +165,35 @@ module Fluent
 
     def send_to_amplitude(records)
       log.info("sending #{records.length} to amplitude")
-      errors = []
-      records_sent = 0
-      until records.empty?
-        # todo make batch size configurable
-        records_to_send = records.pop(100)
-        res = AmplitudeAPI.track(records_to_send)
-        @statsd.track('fluentd.amplitude.request_time', res.total_time * 1000)
-        if res.response_code == 200
-          @statsd.track(
-            'fluentd.amplitude.records_sent',
-            records_to_send.length
-          )
-          records_sent += records_to_send.length
-          log.info(
-            "Amplitude request complete. Duration: #{res.total_time * 1000}, Records: #{records_to_send.length}"
-          )
-        else
-          @statsd.track(
-            'fluentd.amplitude.records_errored',
-            records_to_send.length
-          )
-          errors << [res.response_code, res.body, records_to_send, res.total_time * 1000]
-        end
+      res = AmplitudeAPI.track(records)
+      @statsd.track('fluentd.amplitude.request_time', res.total_time * 1000)
+      if res.response_code == 200
+        @statsd.track(
+          'fluentd.amplitude.records_sent',
+          records.length
+        )
+        log.info(
+          "Amplitude request complete. Duration: #{res.total_time * 1000}, Records: #{records.length}"
+        )
+        log.info("sent #{records.length} to amplitude")
+      else
+        log_error(
+          code: res.response_code,
+          body: res.body,
+          records: records,
+          duration: res.total_time * 1000
+        )
       end
-      log.info("sent #{records_sent} to amplitude")
-      log_errors(errors)
     end
 
-    def log_errors(errors)
-      return if errors.empty?
-      errors_string = errors.map do |code, body, records, time|
-        "Response: #{code}, Time: #{time}, Body: #{body}, Record: #{records}"
-      end
-      raise AmplitudeError, "Errors: #{errors_string}"
+    def log_error(error)
+      @statsd.track(
+        'fluentd.amplitude.records_errored',
+        records.length
+      )
+      error_string = "Response: #{error.code}, Time: #{error.time}, Body: #{error.body}, Duration: #{error.duration}"
+      log.error(error_string)
+      raise AmplitudeError, "Error: #{errors_string}"
     end
   end
 end
