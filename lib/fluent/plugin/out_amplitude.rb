@@ -177,23 +177,24 @@ module Fluent
         )
         log.info("sent #{records.length} to amplitude")
       else
-        log_error(
+        error_string = log_error(
           code: res.response_code,
           body: res.body,
           records: records,
           duration: res.total_time * 1000
         )
+        raise AmplitudeError, "Error: #{error_string}"
       end
     end
 
     def log_error(error)
       @statsd.track(
         'fluentd.amplitude.records_errored',
-        records.length
+        error[:records].length
       )
-      error_string = "Response: #{error.code}, Time: #{error.time}, Body: #{error.body}, Duration: #{error.duration}"
+      error_string = "Response: #{error[:code]}, Body: #{error[:body]}, Duration: #{error[:duration]}"
       log.error(error_string)
-      raise AmplitudeError, "Error: #{errors_string}"
+      error_string
     end
   end
 end
