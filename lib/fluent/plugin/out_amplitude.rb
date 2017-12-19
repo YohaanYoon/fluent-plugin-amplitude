@@ -108,12 +108,11 @@ module Fluent
     end
 
     def extract_insert_id!(amplitude_hash, record)
-      if @insert_id_key
-        @insert_id_key.each do |insert_id_key|
-          if record[insert_id_key]
-            amplitude_hash[:insert_id] = record.delete(insert_id_key)
-            break
-          end
+      return unless @insert_id_key
+      @insert_id_key.each do |insert_id_key|
+        if record[insert_id_key]
+          amplitude_hash[:insert_id] = record.delete(insert_id_key)
+          break
         end
       end
     end
