@@ -28,7 +28,8 @@ describe Fluent::AmplitudeOutput do
         response
       )
       allow(response).to receive(:total_time).and_return(123)
-      allow_any_instance_of(Statsd).to receive(:track)
+      allow_any_instance_of(Statsd).to receive(:timing)
+      allow_any_instance_of(Statsd).to receive(:increment)
     end
 
     before do
@@ -353,7 +354,7 @@ describe Fluent::AmplitudeOutput do
       plugin = Fluent::AmplitudeOutput.new
       message = 'Response: 429, Body: This is the body, Duration: 2000'
 
-      expect_any_instance_of(Statsd).to receive(:track).with(
+      expect_any_instance_of(Statsd).to receive(:increment).with(
         'fluentd.amplitude.records_errored', 3
       )
       expect(plugin.log).to receive(:error).with(message)
