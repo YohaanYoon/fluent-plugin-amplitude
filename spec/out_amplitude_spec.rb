@@ -15,6 +15,7 @@ describe Fluent::AmplitudeOutput do
         api_key XXXXXX
         user_id_key user_id
         device_id_key uuid
+        insert_id_key event_uuid
         user_properties first_name, last_name
         event_properties current_source
       )
@@ -331,6 +332,55 @@ describe Fluent::AmplitudeOutput do
           event_type: tag,
           user_id: 42,
           device_id: 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          time: Time.parse('2016-12-20T00:00:06Z').to_i,
+          user_properties: {
+            first_name: 'Bobby',
+            last_name: 'Weir'
+          },
+          event_properties: {
+            current_source: 'fb_share'
+          }
+        }
+      end
+
+      it 'produces the expected output' do
+        amplitude.expect_format [tag, now, formatted_event].to_msgpack
+        amplitude.run
+      end
+    end
+
+    context 'insert_id_key specified' do
+      let(:conf) do
+        %(
+          api_key XXXXXX
+          user_id_key user_id
+          device_id_key uuid
+          time_key created_at
+          insert_id_key event_uuid
+          user_properties first_name, last_name
+          event_properties current_source
+        )
+      end
+      let(:event) do
+        {
+          'user_id' => 42,
+          'uuid' => 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710,
+          'created_at' => '2016-12-20T00:00:06Z',
+          'event_uuid' => '330e62a4-1e3b-48fc-975f-07771ea6f474',
+        }
+      end
+
+      let(:formatted_event) do
+        {
+          event_type: tag,
+          user_id: 42,
+          device_id: 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          insert_id: '330e62a4-1e3b-48fc-975f-07771ea6f474',
           time: Time.parse('2016-12-20T00:00:06Z').to_i,
           user_properties: {
             first_name: 'Bobby',

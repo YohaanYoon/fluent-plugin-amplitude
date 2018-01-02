@@ -18,6 +18,7 @@ module Fluent
     config_param :api_key, :string, secret: true
     config_param :device_id_key, :array, default: nil
     config_param :user_id_key, :array, default: nil
+    config_param :insert_id_key, :array, default: nil
     config_param :time_key, :array, default: nil
     config_param :user_properties, :array, default: nil
     config_param :event_properties, :array, default: nil
@@ -53,6 +54,7 @@ module Fluent
 
       filter_properties_blacklist!(record)
       extract_user_and_device!(amplitude_hash, record)
+      extract_insert_id!(amplitude_hash, record)
       set_time!(amplitude_hash, record)
       extract_revenue_properties!(amplitude_hash, record)
       extract_user_properties!(amplitude_hash, record)
@@ -101,6 +103,16 @@ module Fluent
             amplitude_hash[:device_id] = record.delete(device_id_key)
             break
           end
+        end
+      end
+    end
+
+    def extract_insert_id!(amplitude_hash, record)
+      return unless @insert_id_key
+      @insert_id_key.each do |insert_id_key|
+        if record[insert_id_key]
+          amplitude_hash[:insert_id] = record.delete(insert_id_key)
+          break
         end
       end
     end
