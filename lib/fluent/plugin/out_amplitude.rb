@@ -71,6 +71,9 @@ module Fluent
         record = simple_symbolize_keys(record)
         if verify_user_and_device(record)
           records << AmplitudeAPI::Event.new(record)
+          if records.length >= 2000
+            send_to_amplitude(records)
+            records = []
         else
           log.info(
             "Error: either user_id or device_id must be set for tag #{tag}"
