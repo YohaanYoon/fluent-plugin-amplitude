@@ -174,6 +174,24 @@ describe Fluent::AmplitudeOutput do
       end
     end
 
+    context 'the input contains an all-0 device_id field and an empty user_id' do
+      let(:event) do
+        {
+          'user_id' => '',
+          'uuid' => '00000000-0000-0000-0000-000000000000',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710
+        }
+      end
+      it 'does not track the event' do
+        expect(AmplitudeAPI).to_not receive(:track)
+        amplitude.run
+      end
+    end
+
     context 'properties_blacklist is specified' do
       let(:conf) do
         %(
