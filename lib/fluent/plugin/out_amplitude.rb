@@ -120,7 +120,7 @@ module Fluent
     def verify_user_and_device(amplitude_hash)
       user_id = amplitude_hash[:user_id]
       device_id = amplitude_hash[:device_id]
-      present?(user_id) || present?(device_id)
+      present?(user_id) || (present?(device_id) && device_id != '00000000-0000-0000-0000-000000000000')
     end
 
     def set_time!(amplitude_hash, record)
@@ -177,6 +177,7 @@ module Fluent
 
     def send_to_amplitude(records)
       log.info("sending #{records.length} to amplitude")
+
       res = AmplitudeAPI.track(records)
       @statsd.timing('fluentd.amplitude.request_time', res.total_time * 1000)
       if res.response_code == 200
