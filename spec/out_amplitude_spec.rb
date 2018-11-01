@@ -21,16 +21,17 @@ describe Fluent::AmplitudeOutput do
       )
     end
 
+    let(:response) do
+      double(:response, response_code: 200)
+    end
+
     before do
       Fluent::Test.setup
       expect(AmplitudeAPI).to receive(:api_key=).with('XXXXXX')
-      response = double(:response, response_code: 200)
       allow(AmplitudeAPI).to receive(:track).with(kind_of(Array)).and_return(
         response
       )
       allow(response).to receive(:total_time).and_return(123)
-      allow_any_instance_of(Statsd).to receive(:timing)
-      allow_any_instance_of(Statsd).to receive(:increment)
     end
 
     before do
@@ -76,6 +77,12 @@ describe Fluent::AmplitudeOutput do
 
       it 'produces the expected output' do
         amplitude.expect_format [tag, now, formatted_event].to_msgpack
+        amplitude.run
+      end
+
+      it 'tracks the appropriate metrics' do
+        expect_any_instance_of(Statsd).to receive(:increment).with('fluentd.amplitude.response_code.200')
+        expect_any_instance_of(Statsd).to receive(:count).with('fluentd.amplitude.records_sent', 1)
         amplitude.run
       end
     end
@@ -415,6 +422,35 @@ describe Fluent::AmplitudeOutput do
         amplitude.run
       end
     end
+
+    context 'with an API error' do
+      let(:event) do
+        {
+          'user_id' => 42,
+          'uuid' => 'e6153b00-85d8-11e6-b1bc-43192d1e493f',
+          'first_name' => 'Bobby',
+          'last_name' => 'Weir',
+          'state' => 'CA',
+          'current_source' => 'fb_share',
+          'recruiter_id' => 710,
+          'created_at' => '2016-12-20T00:00:06Z',
+          'event_uuid' => '330e62a4-1e3b-48fc-975f-07771ea6f474',
+        }
+      end
+
+      let(:response) do
+        double(:response, response_code: 500, body: 'Error')
+      end
+
+      it 'tracks an error response to statsd' do
+        expect_any_instance_of(Statsd).to receive(:increment).with(
+          'fluentd.amplitude.response_code.500'
+        )
+        expect do
+          amplitude.run
+        end.to raise_error(Fluent::AmplitudeOutput::AmplitudeError)
+      end
+    end
   end
 
   describe 'log_error' do
@@ -422,7 +458,7 @@ describe Fluent::AmplitudeOutput do
       plugin = Fluent::AmplitudeOutput.new
       message = 'Response: 429, Body: This is the body, Duration: 2000'
 
-      expect_any_instance_of(Statsd).to receive(:increment).with(
+      expect_any_instance_of(Statsd).to receive(:count).with(
         'fluentd.amplitude.records_errored', 3
       )
       expect(plugin.log).to receive(:error).with(message)
