@@ -180,8 +180,9 @@ module Fluent
 
       res = AmplitudeAPI.track(records)
       @statsd.timing('fluentd.amplitude.request_time', res.total_time * 1000)
+      @statsd.increment("fluentd.amplitude.response_code.#{res.response_code}")
       if res.response_code == 200
-        @statsd.increment(
+        @statsd.count(
           'fluentd.amplitude.records_sent',
           records.length
         )
@@ -201,7 +202,7 @@ module Fluent
     end
 
     def log_error(error)
-      @statsd.increment(
+      @statsd.count(
         'fluentd.amplitude.records_errored',
         error[:records].length
       )
