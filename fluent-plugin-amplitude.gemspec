@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'fluentd', '>= 0.10.55'
   spec.add_runtime_dependency 'amplitude-api', '~> 0.0.9'
-  spec.add_runtime_dependency 'msgpack', '< 0.6.0'
+  spec.add_runtime_dependency 'msgpack', '< 1.2.0'
   spec.add_runtime_dependency 'statsd-ruby', '~> 1.0'
 
   spec.add_development_dependency 'rake', '~> 11.3'
